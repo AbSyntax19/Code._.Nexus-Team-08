@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Upload, ChevronRight, Star, CheckCircle2, Circle } from "lucide-react";
+import { Upload, ChevronRight, Star, CheckCircle2, Circle, MapPin, Navigation } from "lucide-react";
+import Map, { Marker, Popup, NavigationControl } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 interface LoanProduct {
     bank: string;
@@ -29,6 +31,15 @@ interface Profile {
     loanAmount: string;
     familyIncome: string;
     [key: string]: string;
+}
+
+interface BankLocation {
+    id: string;
+    name: string;
+    bankName: string;
+    latitude: number;
+    longitude: number;
+    address: string;
 }
 
 const STEPS = [
@@ -98,9 +109,28 @@ export default function Loans() {
     const [fileName, setFileName] = useState("");
     const [message, setMessage] = useState("");
 
+    // Map States
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [bankLocations, setBankLocations] = useState<BankLocation[]>([]);
+    const [selectedBank, setSelectedBank] = useState<BankLocation | null>(null);
+    const [mapLoading, setMapLoading] = useState(false);
+
     // Fetch available loan products on mount
     useEffect(() => {
         fetchLoanProducts();
+        
+        // Get user location
+        if (navigator.geolocation) {
+           navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    setUserLocation({
+                        lat: pos.coords.latitude,
+                        lng: pos.coords.longitude
+                    });
+                }, 
+                (err) => console.error("Location error:", err)
+           );
+        }
     }, []);
 
     // Progress simulation
@@ -195,7 +225,6 @@ export default function Loans() {
         setMessage("");
 
         try {
-            // Artificial delay to show the progress steps if the API is too fast
             const start = Date.now();
             
             const payload = {
@@ -215,7 +244,6 @@ export default function Loans() {
 
             const data = await res.json();
             
-            // Ensure minimum display time for the cool animation
             const elapsed = Date.now() - start;
             if (elapsed < 4000) {
                  await new Promise(resolve => setTimeout(resolve, 4000 - elapsed));
@@ -223,6 +251,12 @@ export default function Loans() {
 
             setRecommendations(data.recommendations || []);
             setMessage("Recommendations generated.");
+            
+            // Wait for state update then fetch branches
+            if (userLocation && data.recommendations) {
+                findNearestBranches(data.recommendations);
+            }
+
         } catch (err: unknown) {
             console.error(err);
             if (err instanceof Error) {
@@ -233,6 +267,49 @@ export default function Loans() {
         } finally {
             setLoading(false);
             setLoadingStep(0);
+        }
+    };
+
+    const findNearestBranches = async (banks: Recommendation[]) => {
+        if (!userLocation) return;
+        setMapLoading(true);
+        setBankLocations([]);
+        
+        try {
+            const payload = {
+                user_coords: {
+                    lat: userLocation.lat,
+                    lng: userLocation.lng
+                },
+                branches: banks.map(b => ({ bank: b.bank }))
+            };
+
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/nearest-branches`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch nearest branches");
+            
+            const data = await res.json();
+            
+            if (data.nearest_branches) {
+                const locations: BankLocation[] = data.nearest_branches.map((b: any, idx: number) => ({
+                    id: `branch-${idx}`,
+                    name: b.name,
+                    bankName: b.bank,
+                    latitude: b.lat,
+                    longitude: b.lng,
+                    address: b.address || ""
+                }));
+                setBankLocations(locations);
+            }
+
+        } catch (error) {
+            console.error("Error finding branches:", error);
+        } finally {
+            setMapLoading(false);
         }
     };
 
@@ -548,6 +625,89 @@ export default function Loans() {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Map Section */}
+                        {userLocation && (
+                            <div className="space-y-6 mt-12 pt-12 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <MapPin className="text-indigo-400" size={28} />
+                                        <h2 className="text-2xl font-bold text-white">Nearest Branches</h2>
+                                    </div>
+                                    <button 
+                                        onClick={() => userLocation && recommendations && findNearestBranches(recommendations)}
+                                        className="text-sm text-indigo-300 hover:text-white transition-colors"
+                                    >
+                                        Refresh Locations
+                                    </button>
+                                </div>
+                                
+                                <div className="glass-card rounded-2xl overflow-hidden h-[500px] border border-white/10 relative">
+                                    {mapLoading && (
+                                        <div className="absolute inset-0 z-20 bg-black/60 flex items-center justify-center">
+                                            <div className="text-white">Locating branches...</div>
+                                        </div>
+                                    )}
+                                    <Map
+                                        initialViewState={{
+                                            longitude: userLocation.lng,
+                                            latitude: userLocation.lat,
+                                            zoom: 12
+                                        }}
+                                        style={{ width: '100%', height: '100%' }}
+                                        mapStyle="mapbox://styles/mapbox/dark-v11"
+                                        mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
+                                    >
+                                        <NavigationControl position="top-right" />
+                                        
+                                        {/* User Location */}
+                                        <Marker longitude={userLocation.lng} latitude={userLocation.lat} color="#6366f1">
+                                           <div className="w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-indigo-500/30 animate-pulse" />
+                                        </Marker>
+
+                                        {/* Bank Branches */}
+                                        {bankLocations.map((loc, idx) => (
+                                            <Marker 
+                                                key={`${loc.id}-${idx}`}
+                                                longitude={loc.longitude} 
+                                                latitude={loc.latitude}
+                                                color="#ef4444"
+                                                onClick={(e: any) => {
+                                                    e.originalEvent.stopPropagation();
+                                                    setSelectedBank(loc);
+                                                }}
+                                            >
+                                                <MapPin className="text-red-500 hover:scale-110 transition-transform cursor-pointer" size={24} fill="currentColor" />
+                                            </Marker>
+                                        ))}
+
+                                        {/* Popup */}
+                                        {selectedBank && (
+                                            <Popup
+                                                longitude={selectedBank.longitude}
+                                                latitude={selectedBank.latitude}
+                                                anchor="bottom"
+                                                onClose={() => setSelectedBank(null)}
+                                                closeButton={true}
+                                                closeOnClick={false}
+                                                className="text-black"
+                                            >
+                                                <div className="p-2 min-w-[200px]">
+                                                    <h3 className="font-bold text-gray-900">{selectedBank.name}</h3>
+                                                    <p className="text-xs text-gray-500 mt-1">{selectedBank.address}</p>
+                                                    <button 
+                                                        onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedBank.latitude},${selectedBank.longitude}`, '_blank')}
+                                                        className="mt-3 w-full py-1.5 bg-indigo-600 text-white rounded text-xs font-semibold flex items-center justify-center gap-1 hover:bg-indigo-700"
+                                                    >
+                                                        <Navigation size={12} /> Navigate
+                                                    </button>
+                                                </div>
+                                            </Popup>
+                                        )}
+                                    </Map>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

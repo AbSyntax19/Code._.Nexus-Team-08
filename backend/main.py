@@ -583,3 +583,73 @@ Include real, well-known scholarships in India. Focus on currently active scheme
     except Exception as e:
         print(f"Scholarships error: {type(e).__name__}: {e}")
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}")
+
+
+class Branch(BaseModel):
+    bank: str
+    
+class UserCoords(BaseModel):
+    lat: float
+    lng: float
+
+class NearestBranchRequest(BaseModel):
+    user_coords: UserCoords
+    branches: list[Branch]
+
+@app.post("/nearest-branches")
+async def nearest_branches(payload: NearestBranchRequest):
+    try:
+        if not API_KEY:
+            raise HTTPException(status_code=500, detail="API Key missing")
+
+        client = GoogleGenai.Client(api_key=API_KEY)
+        model_id = "gemini-2.0-flash"
+
+        # Construct a search-oriented prompt
+        user_lat = payload.user_coords.lat
+        user_lng = payload.user_coords.lng
+        bank_names = ", ".join([b.bank for b in payload.branches])
+
+        prompt_text = f"""
+        Find the nearest physical bank branch for each of the following banks: {bank_names}.
+        The user is located at Latitude: {user_lat}, Longitude: {user_lng}.
+        
+        For each bank, use Google Search to find the exact address and coordinates of the nearest branch.
+        
+        Return the result as a strict JSON object with a single key "nearest_branches" containing a list of objects.
+        Each object must have:
+        - "bank": The name of the bank
+        - "name": The branch name (e.g., "SBI MG Road Branch")
+        - "lat": Latitude (number)
+        - "lng": Longitude (number)
+        - "address": Full address
+        
+        Example Output:
+        {{
+          "nearest_branches": [
+            {{ "bank": "SBI", "name": "SBI Indiranagar", "lat": 12.97, "lng": 77.64, "address": "..." }}
+          ]
+        }}
+        """
+
+        response = model.generate_content(prompt_text)
+        
+        if not response or not response.text:
+             raise HTTPException(status_code=500, detail="No response from Gemini")
+
+        try:
+            return json.loads(response.text)
+        except json.JSONDecodeError:
+            # Fallback cleanup for markdown
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                text = text.split("```")[1].strip()
+            return json.loads(text)
+
+    except Exception as e:
+        print(f"Nearest Branch Error: {e}")
+        # Log to see if it's a tool error specific to model version
+        print(f"Make sure gemini-2.0-flash-exp or similar supports tools in this SDK version.")
+        raise HTTPException(status_code=500, detail=str(e))

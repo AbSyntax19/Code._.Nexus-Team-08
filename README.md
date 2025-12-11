@@ -36,6 +36,10 @@ Instead of a generic search engine, we provide a **personalized financial assist
     -   **Fix**: Financial jargon is confusing.
     -   **Result**: A friendly AI assistant is always available to answer questions like "What is an EMI?" or "How do I improve my credit score?" in simple language.
 
+6.  **Smart Branch Locator** 📍
+    -   **Fix**: Finding the nearest branch of a specific recommended bank is hassle.
+    -   **Result**: We combine **Mapbox** maps with **Google GenAI Search** to find and display the exact physical branches of your recommended banks near you, complete with navigation.
+
 ---
 
 ## 🛠️ Technical Details
@@ -44,6 +48,7 @@ We leveraged cutting-edge technology to build a modern, high-performance applica
 
 ### Tech Stack
 -   **Frontend**: React.js (TypeScript) for a robust and interactive UI.
+-   **Maps & Geolocation**: Mapbox GL & React Map GL for interactive mapping.
 -   **Styling**: Tailwind CSS for a sleek, responsive "Dark Mode" aesthetic with Glassmorphism effects.
 -   **Backend**: FastAPI (Python) for high-speed API performance.
 -   **Database**: Local Storage (for demo) / Scalable to cloud databases.
@@ -52,6 +57,7 @@ We leveraged cutting-edge technology to build a modern, high-performance applica
 -   **Antigravity (Google's IDE)**: Used as our primary agentic coding environment to accelerate development.
 -   **Google Gemini APIs**:
     -   **Gemini 2.5 Flash**: The core intelligence engine powering our loan recommendations, scholarship search, and chatbot.
+    -   **Gemini 2.0 Flash & Google Search Tool**: Powers our **Branch Locator** to find real-time, accurate physical locations of banks.
     -   **Gemini Vision**: Powers our OCR feature to extract verify data from images and PDFs.
 -   **Google Stitch**: Used to design and prototype the UI designs.
 
