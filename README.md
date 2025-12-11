@@ -53,8 +53,6 @@ We leveraged cutting-edge technology to build a modern, high-performance applica
 -   **Google Gemini APIs**:
     -   **Gemini 2.5 Flash**: The core intelligence engine powering our loan recommendations, scholarship search, and chatbot.
     -   **Gemini Vision**: Powers our OCR feature to extract verify data from images and PDFs.
--   **Nano**: Used for quick edits and efficient terminal workflows.
--   **Bannana**: Essential tool in our development pipeline.
 
 ---
 
