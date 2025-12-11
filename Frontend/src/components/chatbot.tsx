@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Brain, X, Send } from 'lucide-react';
+import { Brain, X, Send, Sparkles } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -31,9 +31,9 @@ export default function AIChatbot() {
   }, [messages]);
 
   const quickActions = [
-    { label: 'Best option?', color: 'bg-purple-100 text-purple-700' },
-    { label: 'Improve tips', color: 'bg-blue-100 text-blue-700' },
-    { label: 'EMI info', color: 'bg-emerald-100 text-emerald-700' },
+    { label: 'Best option?', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
+    { label: 'Improve tips', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+    { label: 'EMI info', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
   ];
 
   const handleSend = async () => {
@@ -82,69 +82,99 @@ export default function AIChatbot() {
     }
   };
 
-  const handleQuickAction = (label: string) => {
-    setInputValue(label);
-    handleSend();
-  };
+
+  
+  // Actually, let's fix the quick action behavior to immediately send
+  const triggerQuickAction = (label: string) => {
+      const userMessage: Message = {
+      id: Date.now().toString(),
+      text: label,
+      isUser: true,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue('');
+    setIsTyping(true);
+
+    setTimeout(() => {
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: getAIResponse(label),
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+      setIsTyping(false);
+    }, 1000 + Math.random() * 1000);
+  }
+
 
   return (
     <>
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center text-white hover:scale-110 transition-all duration-300 z-50 animate-pulse"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full shadow-lg shadow-indigo-500/40 hover:scale-110 transition-all duration-300 z-50 flex items-center justify-center text-white border border-white/10 group"
         >
-          <Brain className="w-8 h-8" />
+          <div className="absolute inset-0 bg-indigo-500 rounded-full animate-ping opacity-20 group-hover:opacity-40"></div>
+          <Sparkles className="w-6 h-6" />
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[600px] bg-white rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden border border-slate-200">
+        <div className="fixed bottom-6 right-6 w-[90vw] max-w-md h-[600px] glass-card flex flex-col z-50 overflow-hidden border border-white/10 shadow-2xl rounded-3xl animate-fade-in origin-bottom-right transition-all">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 p-6 text-white relative">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+          <div className="bg-slate-900/50 backdrop-blur-md p-4 border-b border-white/5 flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Brain className="w-7 h-7" />
+              <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center border border-indigo-500/30">
+                <Brain className="w-5 h-5 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">AI Assistant</h3>
-                <p className="text-white/90 text-sm">Always here to help</p>
+                <h3 className="font-bold text-white text-sm">FinAI Assistant</h3>
+                <p className="text-slate-400 text-xs flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                  Online
+                </p>
               </div>
             </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-slate-50 to-white">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-3xl px-5 py-4 ${
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                     message.isUser
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                      : 'bg-white border-2 border-purple-100 text-slate-800 shadow-sm'
+                      ? 'bg-indigo-600 text-white rounded-br-none'
+                      : 'bg-slate-800/80 text-slate-200 border border-white/5 rounded-bl-none'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <p>{message.text}</p>
+                  <span className="text-[10px] opacity-50 mt-1 block text-right">
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
             ))}
 
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-white border-2 border-purple-100 rounded-3xl px-5 py-4 shadow-sm">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="bg-slate-800/80 px-4 py-3 rounded-2xl rounded-bl-none border border-white/5">
+                  <div className="flex gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
               </div>
@@ -154,12 +184,12 @@ export default function AIChatbot() {
           </div>
 
           {/* Quick Actions */}
-          <div className="px-6 py-3 flex gap-2 bg-white border-t border-slate-100">
+          <div className="px-4 py-3 flex gap-2 overflow-x-auto scrollbar-hide border-t border-white/5 bg-slate-900/30">
             {quickActions.map((action, index) => (
               <button
                 key={index}
-                onClick={() => handleQuickAction(action.label)}
-                className={`${action.color} px-4 py-2 rounded-full text-xs font-medium hover:scale-105 transition-transform`}
+                onClick={() => triggerQuickAction(action.label)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:scale-105 active:scale-95 ${action.color}`}
               >
                 {action.label}
               </button>
@@ -167,20 +197,20 @@ export default function AIChatbot() {
           </div>
 
           {/* Input */}
-          <div className="p-6 bg-white border-t border-slate-100">
-            <div className="flex gap-3">
+          <div className="p-4 bg-slate-900/50 backdrop-blur-md border-t border-white/5">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Ask anything..."
-                className="flex-1 px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-full focus:outline-none focus:border-purple-400 transition-colors text-slate-800 placeholder-slate-400"
+                placeholder="Ask financial questions..."
+                className="flex-1 glass-input px-4 py-2.5 rounded-xl text-sm focus:ring-0"
               />
               <button
                 onClick={handleSend}
                 disabled={!inputValue.trim()}
-                className="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white hover:scale-110 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-purple-500/30"
+                className="p-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
               >
                 <Send className="w-5 h-5" />
               </button>

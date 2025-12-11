@@ -141,6 +141,13 @@ class StudentProfile(BaseModel):
     loanAmount: int
     familyIncome: int
 
+@app.get("/loans")
+async def get_loan_products():
+    """
+    Return all available loan products
+    """
+    return {"loans": LOAN_PRODUCTS}
+
 @app.post("/ocr")
 async def extract_student_data(file: UploadFile = File(...)):
     """
@@ -188,7 +195,7 @@ async def extract_student_data(file: UploadFile = File(...)):
                 """
                 
                 print("🤖 Sending PDF to Gemini...")
-                model = genai.GenerativeModel('gemini-flash-latest')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 
                 import tempfile
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
@@ -250,7 +257,7 @@ async def extract_student_data(file: UploadFile = File(...)):
                     Return pure JSON only, no markdown.
                     """
                     
-                    model = genai.GenerativeModel('gemini-flash-latest')
+                    model = genai.GenerativeModel('gemini-2.5-flash')
                     response = model.generate_content(
                         ocr_prompt,
                         generation_config=genai.types.GenerationConfig(
@@ -301,7 +308,7 @@ async def extract_student_data(file: UploadFile = File(...)):
             """
 
             print("🤖 Sending image to Gemini...")
-            model = genai.GenerativeModel('gemini-flash-latest')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             
             response = model.generate_content(
                 [ocr_prompt, image],
@@ -445,12 +452,13 @@ Each object must follow:
     "bank": "Bank Name",
     "match_reason": "Why this bank is suitable (50–100 words; mention CGPA, LTI, collateral, subsidy, risk)",
     "score": <integer 0–100>,
-    "key_features": ["feature1", "feature2", "feature3"]
+    "key_features": ["feature1", "feature2", "feature3"],
+    "link": "https://..."
   }}
 ]
 """
 
-        model = genai.GenerativeModel("gemini-flash-lite-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt_text)
 
         if not response or not response.text:
@@ -540,7 +548,7 @@ Each object must include:
 Include real, well-known scholarships in India. Focus on currently active schemes.
 """
 
-        model = genai.GenerativeModel("gemini-flash-lite-latest")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content(prompt_text)
 
         if not response or not response.text:
