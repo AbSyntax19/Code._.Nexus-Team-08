@@ -1,0 +1,116 @@
+.recommend-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  color: #e2e8f0;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+  text-align: center;
+  color: #38bdf8;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-fetch {
+  display: block;
+  margin: 0 auto 2rem;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-fetch:hover {
+  background: #2563eb;
+}
+
+.loan-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.loan-card {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.loan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.25);
+}
+
+.loan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.loan-header h3 {
+  color: #93c5fd;
+  margin: 0;
+}
+
+.tag {
+  background: #3b82f6;
+  color: #fff;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.reason {
+  margin-top: 0.8rem;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.progress-wrapper {
+  margin-top: 1rem;
+}
+
+.progress-bar {
+  background: #475569;
+  border-radius: 10px;
+  height: 10px;
+  overflow: hidden;
+  margin-top: 0.3rem;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.6s ease;
+}
+
+.features {
+  margin-top: 1.2rem;
+}
+
+.features ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.features li {
+  color: #f8fafc;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+}
