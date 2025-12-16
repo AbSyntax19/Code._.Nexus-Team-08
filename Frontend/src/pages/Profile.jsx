@@ -23,7 +23,7 @@ export default function Profile() {
       const formData = new FormData();
       formData.append("file", file);
 
-      console.log("Sending request to:", "http://127.0.0.1:8000/ocr");
+      console.log("Sending request to:", `${import.meta.env.VITE_API_URL}/ocr`);
 
       const res = await fetch(`${import.meta.env.VITE_API_URL}/ocr`, {
         method: "POST",
